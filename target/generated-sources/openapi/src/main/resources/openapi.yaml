@@ -1,0 +1,1520 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- description: Generated server url
+  url: http://localhost:8080
+tags:
+- description: Управление данными животных
+  name: Animals
+- description: "Операции по управлению локациями, которые посетило животное"
+  name: Animal Visited Locations
+- description: Управление учетными записями пользователей
+  name: Accounts
+- description: Управление типами животных
+  name: Типы животных
+- description: Управление точками локаций
+  name: Локации
+- description: Регистрация новых пользователей
+  name: Registration
+paths:
+  /locations/{pointId}:
+    delete:
+      description: удаляет локацию по ID
+      operationId: deleteLocation
+      parameters:
+      - explode: false
+        in: path
+        name: pointId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "400":
+          description: Невалидные параметры запроса
+        "401":
+          description: Неверные авторизационные данные
+        "200":
+          description: Локация успешно удалена
+        "404":
+          description: Точка локации с таким ID не найдена
+      summary: Удалить локацию
+      tags:
+      - Локации
+      x-accepts: application/json
+      x-tags:
+      - tag: Локации
+    put:
+      description: Обновляет данные локации и возвращает обновленные данные
+      operationId: updateLocation
+      parameters:
+      - explode: false
+        in: path
+        name: pointId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationDtoRequest'
+        required: true
+      responses:
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Точка локации с такими latitude и longitude уже сущесвтует
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Локация успешно обновлена
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Невалидные параметры запроса
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Точка локации с таким ID не найдена
+      summary: Обновить данные локации
+      tags:
+      - Локации
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Локации
+  /animals/{animalId}:
+    delete:
+      description: Удаление животного по его ID
+      operationId: deleteAnimal
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "200":
+          description: Запрос успешно выполнен
+        "404":
+          description: Животное с animalId не найдено
+        "401":
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "400":
+          description: "Животное покинуло локацию чипирования, при этоместь другие\
+            \ посещенные точки"
+      summary: Удаление животного
+      tags:
+      - Animals
+      x-accepts: application/json
+      x-tags:
+      - tag: Animals
+    get:
+      description: Возвращает животного по его ID
+      operationId: getAnimalById
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Запрос успешно выполнен
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Неверные авторизационные данные
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Невалидные параметры запросы
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Животное с ID не найдено
+      summary: Получить животного
+      tags:
+      - Animals
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animals
+    put:
+      description: Обновление животного по введенном параметрам
+      operationId: updateAnimal
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalDtoUpdateRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Запрос успешно выполнен
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Животное с animalId не найдено, Аккаунт с chipperId не най\
+            ден, Точка локации с chippingLocationId не найдена"
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Невалидные параметры запросы, животное мертво, Новая точка\
+            \ чипирования совпадает с первой посещенной точкой локации"
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+      summary: Обновление животного
+      tags:
+      - Animals
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animals
+  /animals/{animalId}/types:
+    put:
+      description: Обновяет тип животному по введенным данным
+      operationId: updateAnimalTypes
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalDtoUpdateTypeRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Запрос успешно выполнен
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Животное с animalId не найдено, Тип животного с oldTypeId\
+            \ не найденТип животного с newTypeId не найденТипа животного с oldTypeId\
+            \ нет у животного с animalId"
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Тип животного с newTypeId уже есть у животного с animalIdЖивотное
+            с animalId уже имеет типы с oldTypeId и newTypeId
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Невалидные параметры запросы
+      summary: Обновление типа животному
+      tags:
+      - Animals
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animals
+  /animals/{animalId}/locations:
+    get:
+      description: "Возвращает список локаций, посещенных указанным животным, возм\
+        ожно с фильтрацией по датам (startDateTime, endDateTime). Результат выводи\
+        тся постранично (параметры from, size)."
+      operationId: getVisitedLocations
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      - explode: true
+        in: query
+        name: startDateTime
+        required: false
+        schema: {}
+        style: form
+      - explode: true
+        in: query
+        name: endDateTime
+        required: false
+        schema: {}
+        style: form
+      - explode: true
+        in: query
+        name: from
+        required: false
+        schema:
+          default: 0
+          format: int32
+          minimum: 0
+        style: form
+      - explode: true
+        in: query
+        name: size
+        required: false
+        schema:
+          default: 10
+          format: int32
+          minimum: 1
+        style: form
+      responses:
+        "400":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: Невалидные параметры запроса
+        "401":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: Неверные авторизационные данные
+        "404":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: Животное не найдено
+        "200":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: Список локаций успешно получен
+      summary: "Получить локации, которые посетило животное"
+      tags:
+      - Animal Visited Locations
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animal Visited Locations
+    put:
+      description: "Обновляет детали посещенной локации у животного (к примеру, ес\
+        ли нужно изменить дату или другое поле по логике)."
+      operationId: updateVisitedLocation
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalVisitedLocationsDtoRequest'
+        required: true
+      responses:
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: "Невалидные параметры запроса, Обновление первой посещенной\
+            \ точки на точку чипированияОбновление точки на такую же точкуОбновлен\
+            ие точки локации на точку, совпадающую со следующей и/или с предыдущей\
+            \ точками"
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: Животное с animalId не найденоОбъект с информацией о посещенной
+            точке локации с visitedLocationPointId не найден.У животного нет объекта
+            с информацией о посещенной точке локации с visitedLocationPointId.Точка
+            локации с locationPointId не найден
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: Данные локации успешно обновлены
+      summary: Обновить запись о посещенной локации
+      tags:
+      - Animal Visited Locations
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animal Visited Locations
+  /animals/types/{typeId}:
+    delete:
+      description: удаление типа животного по введенным параметрам
+      operationId: deleteAnimalType
+      parameters:
+      - explode: false
+        in: path
+        name: typeId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "401":
+          description: "Неверные авторизационные данные, Неверные авторизационные\
+            \ данные"
+        "200":
+          description: Запрос успешно выполнен
+        "404":
+          description: Тип животного с таким ID не найден
+        "400":
+          description: "Невалидные параметры запроса, Есть животные с типом с Id"
+      summary: удалить тип животного
+      tags:
+      - Типы животных
+      x-accepts: application/json
+      x-tags:
+      - tag: Типы животных
+    get:
+      description: Возвращает тип животного по ID
+      operationId: getAnimalType
+      parameters:
+      - explode: false
+        in: path
+        name: typeId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Запрос успешно выполнен
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Тип животного с таким ID не найден
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Невалидные параметры запроса
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Неверные авторизационные данные
+      summary: Получить тип животного
+      tags:
+      - Типы животных
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Типы животных
+    put:
+      description: обновляет тип животного по введенным параметрам
+      operationId: updateAnimalType
+      parameters:
+      - explode: false
+        in: path
+        name: typeId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalTypeDtoRequest'
+        required: true
+      responses:
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: "Неверные авторизационные данные, Неверные авторизационные\
+            \ данные"
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Запрос успешно выполнен
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Тип животного с таким ID не найден
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Невалидные параметры запроса
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Тип животного с таким type уже существует
+      summary: обновить тип животного
+      tags:
+      - Типы животных
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Типы животных
+  /accounts/{accountId}:
+    delete:
+      description: Удаляет учетную запись по ее ID
+      operationId: deleteAccount
+      parameters:
+      - explode: false
+        in: path
+        name: accountId
+        required: true
+        schema:
+          format: int32
+          minimum: 1
+        style: simple
+      responses:
+        "400":
+          description: "Невалидные параметры запроса, Аккаунт связан с животным"
+        "401":
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "200":
+          description: Учетная запись успешно удалена
+        "403":
+          description: "Обновление не своего аккаунта, аккаунт не найден"
+      summary: Удалить учетную запись
+      tags:
+      - Accounts
+      x-accepts: application/json
+      x-tags:
+      - tag: Accounts
+    get:
+      description: Возвращает данные учетной записи по ее ID
+      operationId: getAccountId
+      parameters:
+      - explode: false
+        in: path
+        name: accountId
+        required: true
+        schema:
+          format: int32
+          minimum: 1
+        style: simple
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Учетная запись успешно найдена
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Неверные авторизационные данные
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Некорректный ID
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Аккаунт с таким accountId не найден
+      summary: Получить учетную запись по ID
+      tags:
+      - Accounts
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Accounts
+    put:
+      description: Обновляет данные учетной записи по ее ID
+      operationId: updateAccount
+      parameters:
+      - explode: false
+        in: path
+        name: accountId
+        required: true
+        schema:
+          format: int32
+          minimum: 1
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDtoRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Список учетных записей получен
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Невалидные параметры запроса
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Аккаунт с таким email уже существует
+        "403":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: "Обновление не своего аккаунта, аккаунт не найден"
+      summary: Обновить учетную запись
+      tags:
+      - Accounts
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Accounts
+  /registration:
+    post:
+      description: Регистрирует новых пользователй
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDtoRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Запрос усешно выполнен
+        "403":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Запрос от авторизованного аккаунта
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Невалидные данные для регистрации
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AccountDtoResponse'
+          description: Аккаунт с таким email уже существует
+      summary: Зарегистрироваться
+      tags:
+      - Registration
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Registration
+  /locations:
+    post:
+      description: Создает новую локацию по введенным параметрам и возвращает добавленную
+        локацию
+      operationId: addLocation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationDtoRequest'
+        required: true
+      responses:
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Точка локации с такими latitude и longitude уже сущесвтует
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Невалидные параметры запроса
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Неверные авторизационные данные
+        "201":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Локация успешно создана
+      summary: Добавить локацию
+      tags:
+      - Локации
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Локации
+  /animals:
+    post:
+      description: Возвращает добавленное животного
+      operationId: addAnimal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalDtoCreateRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Запрос успешно выполнен
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Массив animalTypes содержит дубликаты
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Тип животного не найден, Аккаунт с chipperId не найден, То\
+            чка локации с chippingLocationId не найдена"
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Невалидные параметры запросы
+      summary: Добавление животного
+      tags:
+      - Animals
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animals
+  /animals/{animalId}/types/{typeId}:
+    delete:
+      description: Удаляет тип животному по введенным данным
+      operationId: deleteAnimalType_1
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      - explode: false
+        in: path
+        name: typeId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Запрос успешно выполнен
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Невалидные параметры запросы, У животного только один тип\
+            \ и это тип с typeId"
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Животное с animalId не найденоТип животного с typeId не найденУ
+            животного с animalId нет типа с typeId
+      summary: Удаление типа животному
+      tags:
+      - Animals
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animals
+    post:
+      description: Добавляет тип животному по ID
+      operationId: addAnimalType
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      - explode: false
+        in: path
+        name: typeId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "201":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Запрос успешно выполнен
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Тип животного с typeId уже есть у животного с animalId
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Невалидные параметры запросы
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalDtoResponse'
+          description: "Животное с animalId не найдено, Тип животного с typeId не\
+            \ найден"
+      summary: Добавление типа животному
+      tags:
+      - Animals
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animals
+  /animals/{animalId}/locations/{pointId}:
+    post:
+      description: "Создает запись о том, что указанное животное посетило локацию\
+        \ (pointId)."
+      operationId: addVisitedLocation
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      - explode: false
+        in: path
+        name: pointId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: Животное с animalId не найденоТочка локации с pointId не найдена
+        "201":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: Локация успешно добавлена
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalVisitedLocationsDtoResponse'
+          description: "Невалидные параметры запроса, Животное находится в точке ч\
+            ипирования и никуда не перемещалось, попытка добавить точку локации, р\
+            авную точке чипированияПопытка добавить точку локации, в которой уже н\
+            аходится животное"
+      summary: Добавить новую посещенную локацию
+      tags:
+      - Animal Visited Locations
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animal Visited Locations
+  /animals/types:
+    post:
+      description: Добавление типа животного по введенным параметрам
+      operationId: addAnimalType_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalTypeDtoRequest'
+        required: true
+      responses:
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: "Неверные авторизационные данные, Неверные авторизационные\
+            \ данные"
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Запрос успешно выполнен
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Невалидные параметры запроса
+        "409":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/AnimalTypeDtoResponse'
+          description: Тип животного с таким type уже существует
+      summary: добавить тип животного
+      tags:
+      - Типы животных
+      x-content-type: application/json
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Типы животных
+  /locations/{id}:
+    get:
+      description: Возвращает локацию по ID
+      operationId: getLocation
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Запрос успешно выполнен
+        "400":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Невалидные параметры запроса
+        "401":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Неверные авторизационные данные
+        "404":
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/LocationDtoResponse'
+          description: Точка локации с таким ID не найдена
+      summary: Получение локации
+      tags:
+      - Локации
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Локации
+  /animals/search:
+    get:
+      description: Возвращает список животных по его фильтрам
+      operationId: getAnimalListById
+      parameters:
+      - explode: true
+        in: query
+        name: startDateTime
+        required: false
+        schema: {}
+        style: form
+      - explode: true
+        in: query
+        name: endDateTime
+        required: false
+        schema: {}
+        style: form
+      - explode: true
+        in: query
+        name: chipperId
+        required: false
+        schema:
+          format: int64
+          minimum: 1
+        style: form
+      - explode: true
+        in: query
+        name: chippingLocationId
+        required: false
+        schema:
+          format: int64
+          minimum: 1
+        style: form
+      - explode: true
+        in: query
+        name: lifeStatus
+        required: false
+        schema:
+          enum:
+          - ALIVE
+          - DEAD
+        style: form
+      - explode: true
+        in: query
+        name: gender
+        required: false
+        schema:
+          enum:
+          - MALE
+          - FEMALE
+          - OTHER
+        style: form
+      - explode: true
+        in: query
+        name: from
+        required: false
+        schema:
+          default: 0
+          format: int32
+          minimum: 0
+        style: form
+      - explode: true
+        in: query
+        name: size
+        required: false
+        schema:
+          default: 10
+          format: int32
+          minimum: 1
+        style: form
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Запрос успешно выполнен
+        "401":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Неверные авторизационные данные
+        "400":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AnimalDtoResponse'
+          description: Невалидные параметры запросы
+      summary: Получить животных
+      tags:
+      - Animals
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Animals
+  /accounts/search:
+    get:
+      description: "Позволяет искать учетные записи по имени, фамилии, email с паг\
+        инацией"
+      operationId: searchAccount
+      parameters:
+      - explode: true
+        in: query
+        name: firstName
+        required: false
+        schema: {}
+        style: form
+      - explode: true
+        in: query
+        name: lastName
+        required: false
+        schema: {}
+        style: form
+      - explode: true
+        in: query
+        name: email
+        required: false
+        schema: {}
+        style: form
+      - explode: true
+        in: query
+        name: from
+        required: false
+        schema:
+          default: 0
+          format: int32
+          minimum: 0
+        style: form
+      - explode: true
+        in: query
+        name: size
+        required: false
+        schema:
+          default: 10
+          format: int32
+          minimum: 1
+        style: form
+      responses:
+        "200":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AccountDtoResponse'
+          description: Список учетных записей получен
+        "400":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AccountDtoResponse'
+          description: Невалидные параметры запроса
+        "401":
+          content:
+            '*/*':
+              schema:
+                items:
+                  $ref: '#/components/schemas/AccountDtoResponse'
+          description: Неверные авторизационные данные
+      summary: Поиск учетных записей
+      tags:
+      - Accounts
+      x-accepts: '*/*'
+      x-tags:
+      - tag: Accounts
+  /animals/{animalId}/locations/{visitedPointId}:
+    delete:
+      description: Удаляет указанный идентификатор посещенной локации (visitedPointId)
+        у животного.
+      operationId: deleteVisitedLocation
+      parameters:
+      - explode: false
+        in: path
+        name: animalId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      - explode: false
+        in: path
+        name: visitedPointId
+        required: true
+        schema:
+          format: int64
+          minimum: 1
+        style: simple
+      responses:
+        "200":
+          description: "Запрос успешно выполнен(Если удаляется первая посещенная т\
+            очка локации, а вторая точка совпадает с точкой чипирования, то она уд\
+            аляется автоматически)"
+        "400":
+          description: Невалидные параметры запроса
+        "404":
+          description: |-
+            Животное с animalId не найдено
+            Объект с информацией о посещенной точке локации с visitedPointId не найден.
+            У животного нет объекта с информацией о посещенной точке локации с visitedPointId
+      summary: Удалить запись о посещенной локации
+      tags:
+      - Animal Visited Locations
+      x-accepts: application/json
+      x-tags:
+      - tag: Animal Visited Locations
+components:
+  schemas:
+    LocationDtoRequest:
+      example:
+        latitude: ""
+        longitude: ""
+      properties:
+        latitude:
+          format: double
+          maximum: 90
+          minimum: -90
+        longitude:
+          format: double
+          maximum: 180
+          minimum: -180
+      required:
+      - latitude
+      - longitude
+    LocationDtoResponse:
+      example:
+        latitude: ""
+        id: ""
+        longitude: ""
+      properties:
+        id:
+          format: int64
+        latitude:
+          format: double
+        longitude:
+          format: double
+    AnimalDtoUpdateRequest:
+      example:
+        lifeStatus: ""
+        gender: ""
+        chipperId: ""
+        length: ""
+        chippingLocationId: ""
+        weight: ""
+        height: ""
+      properties:
+        weight:
+          format: double
+          minimum: 0
+        length:
+          format: double
+          minimum: 0
+        height:
+          format: double
+          minimum: 0
+        gender:
+          enum:
+          - MALE
+          - FEMALE
+          - OTHER
+        chipperId:
+          format: int32
+          minimum: 1
+        chippingLocationId:
+          format: int64
+          minimum: 1
+        lifeStatus:
+          enum:
+          - ALIVE
+          - DEAD
+      required:
+      - chipperId
+      - chippingLocationId
+      - gender
+      - height
+      - length
+      - lifeStatus
+      - weight
+    AnimalDtoResponse:
+      example:
+        chippingDateTime: ""
+        lifeStatus: ""
+        gender: ""
+        chipperId: ""
+        animalTypes: ""
+        length: ""
+        chippingLocationId: ""
+        weight: ""
+        deathDateTime: ""
+        id: ""
+        visitedLocations: ""
+        height: ""
+      properties:
+        id:
+          format: int64
+        animalTypes:
+          items:
+            format: int64
+        weight:
+          format: double
+        length:
+          format: double
+        height:
+          format: double
+        gender:
+          enum:
+          - MALE
+          - FEMALE
+          - OTHER
+        lifeStatus:
+          enum:
+          - ALIVE
+          - DEAD
+        chippingDateTime: {}
+        chipperId:
+          format: int32
+        chippingLocationId:
+          format: int64
+        visitedLocations:
+          items:
+            format: int64
+        deathDateTime: {}
+    AnimalDtoUpdateTypeRequest:
+      example:
+        oldTypeId: ""
+        newTypeId: ""
+      properties:
+        oldTypeId:
+          format: int64
+          minimum: 1
+        newTypeId:
+          format: int64
+          minimum: 1
+      required:
+      - newTypeId
+      - oldTypeId
+    AnimalVisitedLocationsDtoRequest:
+      example:
+        visitedLocationPointId: ""
+        locationPointId: ""
+      properties:
+        visitedLocationPointId:
+          format: int64
+          minimum: 1
+        locationPointId:
+          format: int64
+          minimum: 1
+    AnimalVisitedLocationsDtoResponse:
+      example:
+        dateTimeOfVisitLocationPoint: ""
+        locationPointId: ""
+        id: ""
+      properties:
+        id:
+          format: int64
+        dateTimeOfVisitLocationPoint: {}
+        locationPointId:
+          format: int64
+    AnimalTypeDtoRequest:
+      example:
+        type: ""
+      properties:
+        type: {}
+      required:
+      - type
+    AnimalTypeDtoResponse:
+      example:
+        id: ""
+        type: ""
+      properties:
+        id:
+          format: int64
+        type: {}
+    AccountDtoRequest:
+      example:
+        firstName: ""
+        lastName: ""
+        password: ""
+        email: ""
+      properties:
+        firstName: {}
+        lastName: {}
+        email: {}
+        password: {}
+      required:
+      - email
+      - firstName
+      - lastName
+      - password
+    AccountDtoResponse:
+      example:
+        firstName: ""
+        lastName: ""
+        id: ""
+        email: ""
+      properties:
+        id:
+          format: int32
+        firstName: {}
+        lastName: {}
+        email: {}
+    AnimalDtoCreateRequest:
+      example:
+        gender: ""
+        chipperId: ""
+        animalTypes: ""
+        length: ""
+        chippingLocationId: ""
+        weight: ""
+        height: ""
+      properties:
+        animalTypes:
+          items:
+            format: int64
+            minimum: 1
+        weight:
+          format: double
+          minimum: 0
+        length:
+          format: double
+          minimum: 0
+        height:
+          format: double
+          minimum: 0
+        gender:
+          enum:
+          - MALE
+          - FEMALE
+          - OTHER
+        chipperId:
+          format: int32
+          minimum: 1
+        chippingLocationId:
+          format: int64
+          minimum: 1
+      required:
+      - animalTypes
+      - chipperId
+      - chippingLocationId
+      - gender
+      - height
+      - length
+      - weight
