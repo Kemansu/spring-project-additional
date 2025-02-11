@@ -3,7 +3,7 @@ info:
   title: OpenAPI definition
   version: v0
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:8090
     description: Generated server url
 tags:
   - name: Animals
@@ -41,30 +41,30 @@ paths:
               $ref: "#/components/schemas/LocationDtoRequest"
         required: true
       responses:
-        "409":
-          description: Точка локации с такими latitude и longitude уже сущесвтует
+        "404":
+          description: Точка локации с таким ID не найдена
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
+                $ref: "#/components/schemas/ObjectNotFoundException"
         "200":
           description: Локация успешно обновлена
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/LocationDtoResponse"
+        "409":
+          description: Точка локации с такими latitude и longitude уже сущесвтует
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ConflictDataException"
         "400":
           description: Невалидные параметры запроса
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
-        "404":
-          description: Точка локации с таким ID не найдена
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
+                $ref: "#/components/schemas/RequestValidationException"
     delete:
       tags:
         - Локации
@@ -80,14 +80,26 @@ paths:
             format: int64
             minimum: 1
       responses:
-        "400":
-          description: Невалидные параметры запроса
-        "401":
-          description: Неверные авторизационные данные
-        "200":
-          description: Локация успешно удалена
         "404":
           description: Точка локации с таким ID не найдена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "200":
+          description: Локация успешно удалена
+        "401":
+          description: Неверные авторизационные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthenticationException"
+        "400":
+          description: Невалидные параметры запроса
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
   /animals/{animalId}:
     get:
       tags:
@@ -104,6 +116,18 @@ paths:
             format: int64
             minimum: 1
       responses:
+        "400":
+          description: Невалидные параметры запросы
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
+        "404":
+          description: Животное с ID не найдено
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
         "200":
           description: Запрос успешно выполнен
           content:
@@ -115,19 +139,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "400":
-          description: Невалидные параметры запросы
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "404":
-          description: Животное с ID не найдено
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
     put:
       tags:
         - Animals
@@ -149,22 +161,15 @@ paths:
               $ref: "#/components/schemas/AnimalDtoUpdateRequest"
         required: true
       responses:
-        "200":
-          description: Запрос успешно выполнен
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
         "404":
           description: "Животное с animalId не найдено, Аккаунт с chipperId не най\
             ден, Точка локации с chippingLocationId не найдена"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "400":
-          description: "Невалидные параметры запросы, животное мертво, Новая точка\
-            \ чипирования совпадает с первой посещенной точкой локации"
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "200":
+          description: Запрос успешно выполнен
           content:
             '*/*':
               schema:
@@ -175,7 +180,14 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
+        "400":
+          description: "Невалидные параметры запросы, животное мертво, Новая точка\
+            \ чипирования совпадает с первой посещенной точкой локации"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
     delete:
       tags:
         - Animals
@@ -193,14 +205,26 @@ paths:
       responses:
         "200":
           description: Запрос успешно выполнен
-        "404":
-          description: Животное с animalId не найдено
-        "401":
-          description: "Неверные авторизационные данные, Запрос от неавторизованно\
-            го аккаунта"
         "400":
           description: "Животное покинуло локацию чипирования, при этоместь другие\
             \ посещенные точки"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
+        "404":
+          description: Животное с animalId не найдено
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "401":
+          description: "Неверные авторизационные данные, Запрос от неавторизованно\
+            го аккаунта"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthenticationException"
   /animals/{animalId}/types:
     put:
       tags:
@@ -223,16 +247,22 @@ paths:
               $ref: "#/components/schemas/AnimalDtoUpdateTypeRequest"
         required: true
       responses:
-        "200":
-          description: Запрос успешно выполнен
+        "400":
+          description: Невалидные параметры запросы
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/RequestValidationException"
         "404":
           description: "Животное с animalId не найдено, Тип животного с oldTypeId\
             \ не найденТип животного с newTypeId не найденТипа животного с oldTypeId\
             \ нет у животного с animalId"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "200":
+          description: Запрос успешно выполнен
           content:
             '*/*':
               schema:
@@ -243,20 +273,14 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
         "409":
           description: Тип животного с newTypeId уже есть у животного с animalIdЖивотное
             с animalId уже имеет типы с oldTypeId и newTypeId
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "400":
-          description: Невалидные параметры запросы
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/ConflictDataException"
   /animals/{animalId}/locations:
     get:
       tags:
@@ -301,8 +325,14 @@ paths:
             default: 10
             minimum: 1
       responses:
-        "400":
-          description: Невалидные параметры запроса
+        "404":
+          description: Животное не найдено
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "200":
+          description: Список локаций успешно получен
           content:
             '*/*':
               schema:
@@ -314,25 +344,13 @@ paths:
           content:
             '*/*':
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
-        "404":
-          description: Животное не найдено
+                $ref: "#/components/schemas/AuthenticationException"
+        "400":
+          description: Невалидные параметры запроса
           content:
             '*/*':
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
-        "200":
-          description: Список локаций успешно получен
-          content:
-            '*/*':
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
+                $ref: "#/components/schemas/RequestValidationException"
     put:
       tags:
         - Animal Visited Locations
@@ -355,20 +373,8 @@ paths:
               $ref: "#/components/schemas/AnimalVisitedLocationsDtoRequest"
         required: true
       responses:
-        "400":
-          description: "Невалидные параметры запроса, Обновление первой посещенной\
-            \ точки на точку чипированияОбновление точки на такую же точкуОбновлен\
-            ие точки локации на точку, совпадающую со следующей и/или с предыдущей\
-            \ точками"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
-        "404":
-          description: Животное с animalId не найденоОбъект с информацией о посещенной
-            точке локации с visitedLocationPointId не найден.У животного нет объекта
-            с информацией о посещенной точке локации с visitedLocationPointId.Точка
-            локации с locationPointId не найден
+        "200":
+          description: Данные локации успешно обновлены
           content:
             '*/*':
               schema:
@@ -379,13 +385,25 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
-        "200":
-          description: Данные локации успешно обновлены
+                $ref: "#/components/schemas/AuthenticationException"
+        "400":
+          description: "Невалидные параметры запроса, Обновление первой посещенной\
+            \ точки на точку чипированияОбновление точки на такую же точкуОбновлен\
+            ие точки локации на точку, совпадающую со следующей и/или с предыдущей\
+            \ точками"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
+                $ref: "#/components/schemas/RequestValidationException"
+        "404":
+          description: Животное с animalId не найденоОбъект с информацией о посещенной
+            точке локации с visitedLocationPointId не найден.У животного нет объекта
+            с информацией о посещенной точке локации с visitedLocationPointId.Точка
+            локации с locationPointId не найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
   /animals/types/{typeId}:
     get:
       tags:
@@ -402,14 +420,20 @@ paths:
             format: int64
             minimum: 1
       responses:
-        "200":
-          description: Запрос успешно выполнен
+        "404":
+          description: Тип животного с таким ID не найден
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
-        "404":
-          description: Тип животного с таким ID не найден
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "401":
+          description: Неверные авторизационные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthenticationException"
+        "200":
+          description: Запрос успешно выполнен
           content:
             '*/*':
               schema:
@@ -419,13 +443,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
-        "401":
-          description: Неверные авторизационные данные
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
+                $ref: "#/components/schemas/RequestValidationException"
     put:
       tags:
         - Типы животных
@@ -447,21 +465,27 @@ paths:
               $ref: "#/components/schemas/AnimalTypeDtoRequest"
         required: true
       responses:
+        "404":
+          description: Тип животного с таким ID не найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "409":
+          description: Тип животного с таким type уже существует
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ForbiddenException"
         "401":
           description: "Неверные авторизационные данные, Неверные авторизационные\
             \ данные"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
         "200":
           description: Запрос успешно выполнен
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
-        "404":
-          description: Тип животного с таким ID не найден
           content:
             '*/*':
               schema:
@@ -471,13 +495,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
-        "409":
-          description: Тип животного с таким type уже существует
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
+                $ref: "#/components/schemas/RequestValidationException"
     delete:
       tags:
         - Типы животных
@@ -493,15 +511,27 @@ paths:
             format: int64
             minimum: 1
       responses:
-        "401":
-          description: "Неверные авторизационные данные, Неверные авторизационные\
-            \ данные"
         "200":
           description: Запрос успешно выполнен
         "404":
           description: Тип животного с таким ID не найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "401":
+          description: "Неверные авторизационные данные, Неверные авторизационные\
+            \ данные"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthenticationException"
         "400":
           description: "Невалидные параметры запроса, Есть животные с типом с Id"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
   /accounts/{accountId}:
     get:
       tags:
@@ -518,14 +548,14 @@ paths:
             format: int32
             minimum: 1
       responses:
-        "200":
-          description: Учетная запись успешно найдена
+        "404":
+          description: Аккаунт с таким accountId не найден
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
-        "401":
-          description: Неверные авторизационные данные
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "200":
+          description: Учетная запись успешно найдена
           content:
             '*/*':
               schema:
@@ -535,13 +565,13 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
-        "404":
-          description: Аккаунт с таким accountId не найден
+                $ref: "#/components/schemas/RequestValidationException"
+        "401":
+          description: Неверные авторизационные данные
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
     put:
       tags:
         - Accounts
@@ -569,31 +599,31 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/AccountDtoResponse"
-        "400":
-          description: Невалидные параметры запроса
+        "403":
+          description: "Обновление не своего аккаунта, аккаунт не найден"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
+                $ref: "#/components/schemas/ForbiddenException"
         "401":
           description: "Неверные авторизационные данные, Запрос от неавторизованно\
             го аккаунта"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
+        "400":
+          description: Невалидные параметры запроса
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
         "409":
           description: Аккаунт с таким email уже существует
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
-        "403":
-          description: "Обновление не своего аккаунта, аккаунт не найден"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
+                $ref: "#/components/schemas/ConflictDataException"
     delete:
       tags:
         - Accounts
@@ -609,15 +639,27 @@ paths:
             format: int32
             minimum: 1
       responses:
+        "403":
+          description: "Обновление не своего аккаунта, аккаунт не найден"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ForbiddenException"
         "400":
           description: "Невалидные параметры запроса, Аккаунт связан с животным"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
         "401":
           description: "Неверные авторизационные данные, Запрос от неавторизованно\
             го аккаунта"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthenticationException"
         "200":
           description: Учетная запись успешно удалена
-        "403":
-          description: "Обновление не своего аккаунта, аккаунт не найден"
   /registration:
     post:
       tags:
@@ -632,20 +674,20 @@ paths:
               $ref: "#/components/schemas/AccountDtoRequest"
         required: true
       responses:
-        "201":
-          description: Запрос усешно выполнен
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
         "403":
           description: Запрос от авторизованного аккаунта
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
+                $ref: "#/components/schemas/ForbiddenException"
         "400":
           description: Невалидные данные для регистрации
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
+        "201":
+          description: Запрос усешно выполнен
           content:
             '*/*':
               schema:
@@ -655,7 +697,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AccountDtoResponse"
+                $ref: "#/components/schemas/ConflictDataException"
   /locations:
     post:
       tags:
@@ -671,30 +713,30 @@ paths:
               $ref: "#/components/schemas/LocationDtoRequest"
         required: true
       responses:
-        "409":
-          description: Точка локации с такими latitude и longitude уже сущесвтует
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
-        "400":
-          description: Невалидные параметры запроса
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
-        "401":
-          description: Неверные авторизационные данные
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
         "201":
           description: Локация успешно создана
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/LocationDtoResponse"
+        "409":
+          description: Точка локации с такими latitude и longitude уже сущесвтует
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ConflictDataException"
+        "401":
+          description: Неверные авторизационные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthenticationException"
+        "400":
+          description: Невалидные параметры запроса
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
   /animals:
     post:
       tags:
@@ -709,14 +751,20 @@ paths:
               $ref: "#/components/schemas/AnimalDtoCreateRequest"
         required: true
       responses:
-        "200":
-          description: Запрос успешно выполнен
+        "400":
+          description: Невалидные параметры запросы
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/RequestValidationException"
         "409":
           description: Массив animalTypes содержит дубликаты
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ConflictDataException"
+        "200":
+          description: Запрос успешно выполнен
           content:
             '*/*':
               schema:
@@ -727,20 +775,14 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
         "404":
           description: "Тип животного не найден, Аккаунт с chipperId не найден, То\
             чка локации с chippingLocationId не найдена"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "400":
-          description: Невалидные параметры запросы
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/ObjectNotFoundException"
   /animals/{animalId}/types/{typeId}:
     post:
       tags:
@@ -764,6 +806,19 @@ paths:
             format: int64
             minimum: 1
       responses:
+        "404":
+          description: "Животное с animalId не найдено, Тип животного с typeId не\
+            \ найден"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "400":
+          description: Невалидные параметры запросы
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
         "201":
           description: Запрос успешно выполнен
           content:
@@ -775,27 +830,14 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/ConflictDataException"
         "401":
           description: "Неверные авторизационные данные, Запрос от неавторизованно\
             го аккаунта"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "400":
-          description: Невалидные параметры запросы
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "404":
-          description: "Животное с animalId не найдено, Тип животного с typeId не\
-            \ найден"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
     delete:
       tags:
         - Animals
@@ -818,6 +860,20 @@ paths:
             format: int64
             minimum: 1
       responses:
+        "400":
+          description: "Невалидные параметры запросы, У животного только один тип\
+            \ и это тип с typeId"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
+        "404":
+          description: Животное с animalId не найденоТип животного с typeId не найденУ
+            животного с animalId нет типа с typeId
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
         "200":
           description: Запрос успешно выполнен
           content:
@@ -830,21 +886,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "400":
-          description: "Невалидные параметры запросы, У животного только один тип\
-            \ и это тип с typeId"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
-        "404":
-          description: Животное с animalId не найденоТип животного с typeId не найденУ
-            животного с animalId нет типа с typeId
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
   /animals/{animalId}/locations/{pointId}:
     post:
       tags:
@@ -869,12 +911,21 @@ paths:
             format: int64
             minimum: 1
       responses:
+        "400":
+          description: "Невалидные параметры запроса, Животное находится в точке ч\
+            ипирования и никуда не перемещалось, попытка добавить точку локации, р\
+            авную точке чипированияПопытка добавить точку локации, в которой уже н\
+            аходится животное"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
         "404":
           description: Животное с animalId не найденоТочка локации с pointId не найдена
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
+                $ref: "#/components/schemas/ObjectNotFoundException"
         "201":
           description: Локация успешно добавлена
           content:
@@ -887,16 +938,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
-        "400":
-          description: "Невалидные параметры запроса, Животное находится в точке ч\
-            ипирования и никуда не перемещалось, попытка добавить точку локации, р\
-            авную точке чипированияПопытка добавить точку локации, в которой уже н\
-            аходится животное"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalVisitedLocationsDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
   /animals/types:
     post:
       tags:
@@ -911,13 +953,19 @@ paths:
               $ref: "#/components/schemas/AnimalTypeDtoRequest"
         required: true
       responses:
+        "409":
+          description: Тип животного с таким type уже существует
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ConflictDataException"
         "401":
           description: "Неверные авторизационные данные, Неверные авторизационные\
             \ данные"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
         "200":
           description: Запрос успешно выполнен
           content:
@@ -929,13 +977,7 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
-        "409":
-          description: Тип животного с таким type уже существует
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/AnimalTypeDtoResponse"
+                $ref: "#/components/schemas/RequestValidationException"
   /locations/{id}:
     get:
       tags:
@@ -958,24 +1000,24 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/LocationDtoResponse"
-        "400":
-          description: Невалидные параметры запроса
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
-        "401":
-          description: Неверные авторизационные данные
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
         "404":
           description: Точка локации с таким ID не найдена
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/LocationDtoResponse"
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "401":
+          description: Неверные авторизационные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthenticationException"
+        "400":
+          description: Невалидные параметры запроса
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
   /animals/search:
     get:
       tags:
@@ -1042,6 +1084,12 @@ paths:
             default: 10
             minimum: 1
       responses:
+        "400":
+          description: Невалидные параметры запросы
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
         "200":
           description: Запрос успешно выполнен
           content:
@@ -1055,17 +1103,7 @@ paths:
           content:
             '*/*':
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AnimalDtoResponse"
-        "400":
-          description: Невалидные параметры запросы
-          content:
-            '*/*':
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AnimalDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
   /accounts/search:
     get:
       tags:
@@ -1107,24 +1145,20 @@ paths:
             default: 10
             minimum: 1
       responses:
-        "200":
-          description: Список учетных записей получен
+        "401":
+          description: Неверные авторизационные данные
           content:
             '*/*':
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AccountDtoResponse"
+                $ref: "#/components/schemas/AuthenticationException"
         "400":
           description: Невалидные параметры запроса
           content:
             '*/*':
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AccountDtoResponse"
-        "401":
-          description: Неверные авторизационные данные
+                $ref: "#/components/schemas/RequestValidationException"
+        "200":
+          description: Список учетных записей получен
           content:
             '*/*':
               schema:
@@ -1159,13 +1193,21 @@ paths:
           description: "Запрос успешно выполнен(Если удаляется первая посещенная т\
             очка локации, а вторая точка совпадает с точкой чипирования, то она уд\
             аляется автоматически)"
-        "400":
-          description: Невалидные параметры запроса
         "404":
           description: |-
             Животное с animalId не найдено
             Объект с информацией о посещенной точке локации с visitedPointId не найден.
             У животного нет объекта с информацией о посещенной точке локации с visitedPointId
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ObjectNotFoundException"
+        "400":
+          description: Невалидные параметры запроса
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RequestValidationException"
 components:
   schemas:
     LocationDtoRequest:
@@ -1184,6 +1226,95 @@ components:
       required:
         - latitude
         - longitude
+    ObjectNotFoundException:
+      type: object
+      properties:
+        cause:
+          type: object
+          properties:
+            stackTrace:
+              type: array
+              items:
+                type: object
+                properties:
+                  classLoaderName:
+                    type: string
+                  moduleName:
+                    type: string
+                  moduleVersion:
+                    type: string
+                  methodName:
+                    type: string
+                  fileName:
+                    type: string
+                  lineNumber:
+                    type: integer
+                    format: int32
+                  nativeMethod:
+                    type: boolean
+                  className:
+                    type: string
+            message:
+              type: string
+            localizedMessage:
+              type: string
+        stackTrace:
+          type: array
+          items:
+            type: object
+            properties:
+              classLoaderName:
+                type: string
+              moduleName:
+                type: string
+              moduleVersion:
+                type: string
+              methodName:
+                type: string
+              fileName:
+                type: string
+              lineNumber:
+                type: integer
+                format: int32
+              nativeMethod:
+                type: boolean
+              className:
+                type: string
+        message:
+          type: string
+        suppressed:
+          type: array
+          items:
+            type: object
+            properties:
+              stackTrace:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    classLoaderName:
+                      type: string
+                    moduleName:
+                      type: string
+                    moduleVersion:
+                      type: string
+                    methodName:
+                      type: string
+                    fileName:
+                      type: string
+                    lineNumber:
+                      type: integer
+                      format: int32
+                    nativeMethod:
+                      type: boolean
+                    className:
+                      type: string
+              message:
+                type: string
+              localizedMessage:
+                type: string
+        localizedMessage:
+          type: string
     LocationDtoResponse:
       type: object
       properties:
@@ -1196,6 +1327,184 @@ components:
         longitude:
           type: number
           format: double
+    ConflictDataException:
+      type: object
+      properties:
+        cause:
+          type: object
+          properties:
+            stackTrace:
+              type: array
+              items:
+                type: object
+                properties:
+                  classLoaderName:
+                    type: string
+                  moduleName:
+                    type: string
+                  moduleVersion:
+                    type: string
+                  methodName:
+                    type: string
+                  fileName:
+                    type: string
+                  lineNumber:
+                    type: integer
+                    format: int32
+                  nativeMethod:
+                    type: boolean
+                  className:
+                    type: string
+            message:
+              type: string
+            localizedMessage:
+              type: string
+        stackTrace:
+          type: array
+          items:
+            type: object
+            properties:
+              classLoaderName:
+                type: string
+              moduleName:
+                type: string
+              moduleVersion:
+                type: string
+              methodName:
+                type: string
+              fileName:
+                type: string
+              lineNumber:
+                type: integer
+                format: int32
+              nativeMethod:
+                type: boolean
+              className:
+                type: string
+        message:
+          type: string
+        suppressed:
+          type: array
+          items:
+            type: object
+            properties:
+              stackTrace:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    classLoaderName:
+                      type: string
+                    moduleName:
+                      type: string
+                    moduleVersion:
+                      type: string
+                    methodName:
+                      type: string
+                    fileName:
+                      type: string
+                    lineNumber:
+                      type: integer
+                      format: int32
+                    nativeMethod:
+                      type: boolean
+                    className:
+                      type: string
+              message:
+                type: string
+              localizedMessage:
+                type: string
+        localizedMessage:
+          type: string
+    RequestValidationException:
+      type: object
+      properties:
+        cause:
+          type: object
+          properties:
+            stackTrace:
+              type: array
+              items:
+                type: object
+                properties:
+                  classLoaderName:
+                    type: string
+                  moduleName:
+                    type: string
+                  moduleVersion:
+                    type: string
+                  methodName:
+                    type: string
+                  fileName:
+                    type: string
+                  lineNumber:
+                    type: integer
+                    format: int32
+                  nativeMethod:
+                    type: boolean
+                  className:
+                    type: string
+            message:
+              type: string
+            localizedMessage:
+              type: string
+        stackTrace:
+          type: array
+          items:
+            type: object
+            properties:
+              classLoaderName:
+                type: string
+              moduleName:
+                type: string
+              moduleVersion:
+                type: string
+              methodName:
+                type: string
+              fileName:
+                type: string
+              lineNumber:
+                type: integer
+                format: int32
+              nativeMethod:
+                type: boolean
+              className:
+                type: string
+        message:
+          type: string
+        suppressed:
+          type: array
+          items:
+            type: object
+            properties:
+              stackTrace:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    classLoaderName:
+                      type: string
+                    moduleName:
+                      type: string
+                    moduleVersion:
+                      type: string
+                    methodName:
+                      type: string
+                    fileName:
+                      type: string
+                    lineNumber:
+                      type: integer
+                      format: int32
+                    nativeMethod:
+                      type: boolean
+                    className:
+                      type: string
+              message:
+                type: string
+              localizedMessage:
+                type: string
+        localizedMessage:
+          type: string
     AnimalDtoUpdateRequest:
       type: object
       properties:
@@ -1284,6 +1593,95 @@ components:
             format: int64
         deathDateTime:
           type: string
+    AuthenticationException:
+      type: object
+      properties:
+        cause:
+          type: object
+          properties:
+            stackTrace:
+              type: array
+              items:
+                type: object
+                properties:
+                  classLoaderName:
+                    type: string
+                  moduleName:
+                    type: string
+                  moduleVersion:
+                    type: string
+                  methodName:
+                    type: string
+                  fileName:
+                    type: string
+                  lineNumber:
+                    type: integer
+                    format: int32
+                  nativeMethod:
+                    type: boolean
+                  className:
+                    type: string
+            message:
+              type: string
+            localizedMessage:
+              type: string
+        stackTrace:
+          type: array
+          items:
+            type: object
+            properties:
+              classLoaderName:
+                type: string
+              moduleName:
+                type: string
+              moduleVersion:
+                type: string
+              methodName:
+                type: string
+              fileName:
+                type: string
+              lineNumber:
+                type: integer
+                format: int32
+              nativeMethod:
+                type: boolean
+              className:
+                type: string
+        message:
+          type: string
+        suppressed:
+          type: array
+          items:
+            type: object
+            properties:
+              stackTrace:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    classLoaderName:
+                      type: string
+                    moduleName:
+                      type: string
+                    moduleVersion:
+                      type: string
+                    methodName:
+                      type: string
+                    fileName:
+                      type: string
+                    lineNumber:
+                      type: integer
+                      format: int32
+                    nativeMethod:
+                      type: boolean
+                    className:
+                      type: string
+              message:
+                type: string
+              localizedMessage:
+                type: string
+        localizedMessage:
+          type: string
     AnimalDtoUpdateTypeRequest:
       type: object
       properties:
@@ -1327,6 +1725,95 @@ components:
           type: string
       required:
         - type
+    ForbiddenException:
+      type: object
+      properties:
+        cause:
+          type: object
+          properties:
+            stackTrace:
+              type: array
+              items:
+                type: object
+                properties:
+                  classLoaderName:
+                    type: string
+                  moduleName:
+                    type: string
+                  moduleVersion:
+                    type: string
+                  methodName:
+                    type: string
+                  fileName:
+                    type: string
+                  lineNumber:
+                    type: integer
+                    format: int32
+                  nativeMethod:
+                    type: boolean
+                  className:
+                    type: string
+            message:
+              type: string
+            localizedMessage:
+              type: string
+        stackTrace:
+          type: array
+          items:
+            type: object
+            properties:
+              classLoaderName:
+                type: string
+              moduleName:
+                type: string
+              moduleVersion:
+                type: string
+              methodName:
+                type: string
+              fileName:
+                type: string
+              lineNumber:
+                type: integer
+                format: int32
+              nativeMethod:
+                type: boolean
+              className:
+                type: string
+        message:
+          type: string
+        suppressed:
+          type: array
+          items:
+            type: object
+            properties:
+              stackTrace:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    classLoaderName:
+                      type: string
+                    moduleName:
+                      type: string
+                    moduleVersion:
+                      type: string
+                    methodName:
+                      type: string
+                    fileName:
+                      type: string
+                    lineNumber:
+                      type: integer
+                      format: int32
+                    nativeMethod:
+                      type: boolean
+                    className:
+                      type: string
+              message:
+                type: string
+              localizedMessage:
+                type: string
+        localizedMessage:
+          type: string
     AnimalTypeDtoResponse:
       type: object
       properties:

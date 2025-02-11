@@ -5,7 +5,28 @@ spring:
     username: postgres
     password: den1980FG
 
+
+
+  cloud:
+    openfeign:
+      client:
+        config:
+          animal-tracking-service:
+            url: http://localhost:8091
+            connectTimeout: 10000
+            read-timeout: 15000
+          animal-finished-service:
+            url: http://localhost:8090
+            connectTimeout: 10000
+            read-timeout: 15000
+
+
+
 logging:
   level:
     org.springframework: INFO
     com.example.demo: DEBUG
+
+server:
+  port: 8081
+

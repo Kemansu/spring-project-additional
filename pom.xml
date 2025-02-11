@@ -27,6 +27,14 @@
 
 	<!-- Dependencies -->
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>2022.0.3</version> <!-- или ваша актуальная версия -->
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+
 		<!-- JPA, Validation, Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -48,11 +56,19 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Lombok -->
+		<!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-openfeign -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<version>1.18.36</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Test -->
@@ -142,12 +158,6 @@
                          с org.openapitools.OpenApiGeneratorApplication -->
 					<mainClass>com.example.demo_2.Demo2Application</mainClass>
 
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
 				</configuration>
 			</plugin>
 
