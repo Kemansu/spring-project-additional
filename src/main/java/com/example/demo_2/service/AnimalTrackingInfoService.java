@@ -38,7 +38,7 @@ public class AnimalTrackingInfoService {
     @Transactional
     @Scheduled(fixedRate = 5000)
     public void counter() {
-        AnimalTrackingInfo trackingInfo = new AnimalTrackingInfo();
+        var trackingInfo = new AnimalTrackingInfo();
 
         trackingInfo.setNumberOfAnimals(animalTrackingClient.getNumberOfAnimals());
         trackingInfo.setDateOfScanning(ZonedDateTime.now());
@@ -55,6 +55,7 @@ public class AnimalTrackingInfoService {
 
             client.send(request, HttpResponse.BodyHandlers.ofString());
 
+            // если завершились автотесты, тогда выводим
             System.out.println("автотесты закончили свою работу");
             System.out.println("максимальное количсетво животных - " + trackingInfoRepository.findMaxNumberOfAnimals());
             System.out.println("минимальное количсетво животных - " + trackingInfoRepository.findMinNumberOfAnimals());
